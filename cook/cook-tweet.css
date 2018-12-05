@@ -1,0 +1,30 @@
+body{
+  background-color: #f9efe5;
+}
+
+.header{
+  background-color: #ffa226;
+  height: 100px;
+  color:#fff;
+}
+
+.header-logo{
+  float:left;
+  font-size:36px;
+  padding:20px 40px;
+}
+
+.header-logout{
+  float: right;
+  padding:20px 40px;
+}
+
+.textarea{
+  width: 200px;
+  height: 100px;
+
+}
+
+.main{
+  padding: 40px;
+}
