@@ -24,7 +24,7 @@ exit;
     </div>
   <a class="header-logout" href="cook-TOP.php">トップへ戻る</a>
 </div>
-  <form method="POST" action="cook-myshow.php">
+  <form method="POST" action="cook-favo.php">
     <select name="year">
       <option value="">-</option>
       <?php
@@ -72,7 +72,7 @@ if(!empty($_POST["postY"])){
   $selectY=$_POST["postY"];
 }
 if(!empty($_POST["postM"])){
-  $selectM=$_POST["postM"];                     //ここらへんは検索後ページ遷移防ぐ
+  $selectM=$_POST["postM"];
 }
 if(!empty($_POST["postD"])){
   $selectD=$_POST["postD"];
@@ -81,8 +81,7 @@ if(!empty($_POST["posttitle"])){
   $title=$_POST["posttitle"];
 }
 
-//いいね機能の関数定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーいいね関数定義
-function good($postid,$pdo,$cookid,$username){
+function goodDB($postid,$pdo,$cookid,$username){//----------------------------------いいね関数DB書き込み部分
   if(isset($postid)){
     //押されているか確認するために同ユーザー名があるか数える
     $sql="SELECT * FROM cookgood where cookid=:cookid and username=:username";
@@ -106,7 +105,10 @@ function good($postid,$pdo,$cookid,$username){
       $stmt->execute();
     }
   }
-  //いいね数のカウント
+}//------------------------------------------------------------------いいね関数DB書き込み部分
+
+//--------------------------------------------------------------いいね数のカウント関数
+function goodcount($pdo,$cookid,$username){
   $sql="SELECT * FROM cookgood where cookid=:cookid";
   $stmt=$pdo->prepare($sql);
   $stmt->bindValue(':cookid',$cookid, PDO::PARAM_INT);
@@ -127,68 +129,85 @@ function good($postid,$pdo,$cookid,$username){
   }elseif($mycount==0){
   echo $count;
   }
-}//－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－いいね関数定義
+}//--------------------------------------------------------------------------------------いいね数のカウント関数
 
+
+
+$postid=$_POST["postid"];//hiddenで受け取る工夫
+goodDB($_POST["{$postid}"],$pdo,$postid,$_SESSION["USERID"]);//いいねのDBへの書き込みを先に置くことでこのページでもいいねに対応
 //全投稿表示（検索など何もされていない通常表示）
 if(empty($selectY) && empty($selectM) && empty($selectD) && empty($title) || $_POST["all"]){//---------①
-  $sql ="select*from cookdiary where username=:username  order by id desc";
+  $sql ="select*from cookgood where username=:username";
   $stmt = $pdo->prepare($sql);
-  $stmt->bindParam(':username',$_SESSION["USERID"],PDO::PARAM_STR);
+  $stmt->bindValue(':username',$_SESSION["USERID"],PDO::PARAM_STR);
   $stmt->execute();
   $results=$stmt->fetchAll();
-  foreach($results as $row){
-    //echo $row["id"]." ";
-    echo "<li>";
-    echo $row["username"]."<br>";
-    echo $row["created"]."<br>";
-    echo $row["title"]."<br>";
-    echo wordwrap($row["comment"],50,"<br>",true)."<br>";
-    //echo $row["picture"];
-    echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
-    echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
-    echo<<<form
-    <form method="POST" action="cook-myshow.php">
+  foreach($results as $row){//$rowはcookgoodの情報
+    $sql ="select*from cookdiary where id=:id order by id desc";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':id',$row["cookid"],PDO::PARAM_INT);
+    $stmt->execute();
+    $results=$stmt->fetchAll();
+    foreach($results as $row){//$rowはcookdiaryの情報
+      echo "<li>";
+      echo $row["username"]."<br>";
+      echo $row["created"]."<br>";
+      echo $row["title"]."<br>";
+      echo wordwrap($row["comment"],50,"<br>",true)."<br>";
+      //echo $row["picture"];
+      echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
+      echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
+      echo<<<form
+      <form method="POST" action="cook-favo.php">
+        <input name="postid" type="hidden" value="{$row["id"]}">
         <input name="{$row["id"]}" type="submit" value="いいね">
-    </form>
+      </form>
 form;
-  //いいね機能、関数で実行
-  good($_POST["{$row['id']}"],$pdo,$row['id'],$_SESSION["USERID"]);
-    echo "<br>";
-    echo "<br>";
-    echo "</li>";
+    //いいね機能、関数で実行
+    goodcount($pdo,$row['id'],$_SESSION["USERID"]);
+      echo "<br>";
+      echo "<br>";
+      echo "</li>";
+    }
   }
 }else{//何かしら入力されている場合-------------①
-  if($_POST["datesearch"] || !empty($selectY) || !empty($selectM) || !empty($selectD)){//日付から検索する場合
+  if($_POST["datesearch"] || !empty($selectY) || !empty($selectM) || !empty($selectD)){//日付から検索する場合//検索語いいね操作でもそのまま表示
 
     function datesearch($select,$pdo,$selectY,$selectM,$selectD){//日付から検索する機能について関数にまとめておく、$pdoも引数にしておく必要がある
-      $sql ="select*from cookdiary where username=:username and created LIKE \"%{$select}\" order by id desc";
+      $sql ="select*from cookgood where username=:username";
       $stmt = $pdo->prepare($sql);
-      $stmt->bindParam(':username',$_SESSION["USERID"],PDO::PARAM_STR);
+      $stmt->bindValue(':username',$_SESSION["USERID"],PDO::PARAM_STR);
       $stmt->execute();
       $results=$stmt->fetchAll();
-      foreach($results as $row){
-        //echo $row["id"]." ";
-        echo "<li>";
-        echo $row["username"]."<br>";
-        echo $row["created"]."<br>";
-        echo $row["title"]."<br>";
-        echo wordwrap($row["comment"],50,"<br>",true)."<br>";
-        //echo $row["picture"];
-        echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
-        echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
-        echo<<<form
-        <form method="POST" action="cook-myshow.php">
-          <input name="postY" type="hidden" value="{$selectY}">
-          <input name="postM" type="hidden" value="{$selectM}">
-          <input name="postD" type="hidden" value="{$selectD}">
-          <input name="{$row["id"]}" type="submit" value="いいね">
-        </form>
+      foreach($results as $row){//$rowはcookgoodの情報
+        $sql ="select*from cookdiary where id=:id and created LIKE \"%{$select}\" order by id desc";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':id',$row["cookid"],PDO::PARAM_INT);
+        $stmt->execute();
+        $results=$stmt->fetchAll();
+        foreach($results as $row){//$rowはcookdiaryの情報
+          echo "<li>";
+          echo $row["username"]."<br>";
+          echo $row["created"]."<br>";
+          echo $row["title"]."<br>";
+          echo wordwrap($row["comment"],50,"<br>",true)."<br>";
+          echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
+          echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
+          echo<<<form
+          <form method="POST" action="cook-favo.php">
+            <input name="postid" type="hidden" value="{$row["id"]}">
+            <input name="postY" type="hidden" value="{$selectY}">
+            <input name="postM" type="hidden" value="{$selectM}">
+            <input name="postD" type="hidden" value="{$selectD}">
+            <input name="{$row["id"]}" type="submit" value="いいね">
+          </form>
 form;
-      //いいね機能、関数で実行
-      good($_POST["{$row['id']}"],$pdo,$row['id'],$_SESSION["USERID"]);
-        echo "<br>";
-        echo "<br>";
-        echo "</li>";
+        //いいね機能、関数で実行
+        goodcount($pdo,$row['id'],$_SESSION["USERID"]);
+          echo "<br>";
+          echo "<br>";
+          echo "</li>";
+        }
       }
     }
 
@@ -228,30 +247,38 @@ form;
     }
 
   }elseif($_POST["titlesearch"] || !empty($title)){//料理名から検索する場合
-    $sql ="select*from cookdiary where username=:username and title LIKE \"%{$title}%\" order by id desc";   //Enter押したら上にある日付検索押したことになる
+    $sql ="select*from cookgood where username=:username";
     $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':username',$_SESSION["USERID"],PDO::PARAM_STR);
+    $stmt->bindValue(':username',$_SESSION["USERID"],PDO::PARAM_STR);
     $stmt->execute();
     $results=$stmt->fetchAll();
-    foreach($results as $row){
-      echo "<li>";
-      echo $row["username"]."<br>";
-      echo $row["created"]."<br>";
-      echo $row["title"]."<br>";
-      echo wordwrap($row["comment"],50,"<br>",true)."<br>";
-      echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
-      echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
-      echo<<<form
-      <form method="POST" action="cook-myshow.php">
-        <input name="posttitle" type="hidden" value="{$title}">
-        <input name="{$row["id"]}" type="submit" value="いいね">
-      </form>
+    foreach($results as $row){//$rowはcookgoodの情報
+      $sql ="select*from cookdiary where id=:id and title LIKE \"%{$title}%\" order by id desc";   //Enter押したら上にある日付検索押したことになる
+      $stmt = $pdo->prepare($sql);
+      $stmt->bindValue(':id',$row["cookid"],PDO::PARAM_STR);
+      $stmt->execute();
+      $results=$stmt->fetchAll();
+      foreach($results as $row){
+        echo "<li>";
+        echo $row["username"]."<br>";
+        echo $row["created"]."<br>";
+        echo $row["title"]."<br>";
+        echo wordwrap($row["comment"],50,"<br>",true)."<br>";
+        echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
+        echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
+        echo<<<form
+        <form method="POST" action="cook-favo.php">
+          <input name="posttitle" type="hidden" value="{$title}">
+          <input name="postid" type="hidden" value="{$row["id"]}">
+          <input name="{$row["id"]}" type="submit" value="いいね">
+        </form>
 form;
-    //いいね機能、関数で実行
-    good($_POST["{$row['id']}"],$pdo,$row['id'],$_SESSION["USERID"]);
-      echo "<br>";
-      echo "<br>";
-      echo "</li>";
+      //いいね機能、関数で実行
+      goodcount($pdo,$row['id'],$_SESSION["USERID"]);
+        echo "<br>";
+        echo "<br>";
+        echo "</li>";
+      }
     }
   }
 }
