@@ -1,4 +1,4 @@
-# cook SNS
+# COOK SNS
 
 【テーマ】<br>
 料理をテーマにしたSNS<br>
