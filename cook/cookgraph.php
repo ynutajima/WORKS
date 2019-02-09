@@ -82,6 +82,9 @@ echo "</li>";
 
 
 //select//折れ線グラフ用
+if(date("m") < 4){
+$dateY = $dateY - 1;
+} //4月スタートで3月終わりにするため
 for($i=4;$i<=12;$i++){
   $eattimessum=0;
   $costsum=0;//繰り返しで引き継がれないように０に戻す
@@ -100,6 +103,12 @@ for($i=4;$i<=12;$i++){
   $gaisyokusum=$gaisyoku*$eattimessum;
   $setuyaku=$gaisyokusum - $costsum;
   $data[]=$setuyaku;
+}
+  
+if(date("m") < 4){
+$dateY = date("Y");
+}else{
+  $dateY = $dateY + 1;
 }
 for($i=1;$i<=3;$i++){//4月スタートのため
   $eattimessum=0;
