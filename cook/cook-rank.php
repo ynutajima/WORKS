@@ -94,7 +94,7 @@ $results=$stmt->fetchAll();//cookdiaryの料理個別のidを↓のwhereで使�
 foreach($results as $row){
   $sql="SELECT * FROM cookgood where cookid=:cookid";
   $stmt=$pdo->prepare($sql);
-  $stmt->bindValue(':cookid',$row["id"], PDO::PARAM_INT);
+  $stmt->bindValue(':cookid',$row["id"], PDO::PARAM_INT); //cookgoodに各投稿何回あるか＝いいねの数
   $stmt->execute();
   $count=$stmt->fetchAll();
   $count=count($count);
@@ -105,7 +105,7 @@ arsort($rankarray);//$countの多い順に並べ替え
 echo "<div class='main'>";
 //いいねランキング順に表示機能↓
 $i=1;
-foreach($rankarray as $id=>$count){//$id→料理のid、$count→いいね数
+foreach($rankarray as $id=>$count){//$id→料理のid、$count→いいね数 101行目の$rankarray[$row["id"]]関連
   $sql ="select*from cookdiary where id=:id";
   $stmt = $pdo->prepare($sql);
   $stmt->bindValue(':id',$id,PDO::PARAM_INT);
@@ -127,7 +127,7 @@ foreach($rankarray as $id=>$count){//$id→料理のid、$count→いいね数
     echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
     echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
     //投稿ごとに区別、1投稿に個別のいいねボタン↓
-    //ここではhiddenを使う工夫
+    //ここではhiddenを使う工夫//表示する前にこの値が欲しい
     echo<<<form
     <form method="POST" action="cook-rank.php">
         <input name="postid" type="hidden" value="{$row["id"]}">
