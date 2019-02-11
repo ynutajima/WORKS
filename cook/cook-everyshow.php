@@ -82,10 +82,10 @@ if(!empty($_POST["posttitle"])){
 }
 
 //いいね機能の関数定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーいいね関数定義始まり
-function good($postid,$pdo,$cookid,$username){
-  if(isset($postid)){
+function good($postid,$pdo,$cookid,$username){//$postidはいいねボタン
+  if(isset($postid)){//いいねボタン押されたら
     //押されているか確認するために同ユーザー名があるか数える(自分が押してるか)
-    $sql="SELECT * FROM cookgood where cookid=:cookid and username=:username";
+    $sql="SELECT * FROM cookgood where cookid=:cookid and username=:username"; //ユーザー名はセッションユーザー
     $stmt=$pdo->prepare($sql);
     $stmt->bindvalue(':cookid',$cookid, PDO::PARAM_INT);
     $stmt->bindValue(':username',$username,PDO::PARAM_STR);
@@ -96,7 +96,7 @@ function good($postid,$pdo,$cookid,$username){
     if($mycount==0){//まだ押されていない場合
       $sql=$pdo->prepare("INSERT INTO cookgood(cookid,username) VALUES(:cookid,:username)");
       $sql->bindvalue(':cookid',$cookid, PDO::PARAM_INT);
-      $sql->bindvalue(':username',$username, PDO::PARAM_STR);
+      $sql->bindvalue(':username',$username, PDO::PARAM_STR); //coolgoodテーブルには押した人のusernameを保存
       $sql->execute();
     }else{//押されている
       $sql="delete from cookgood where cookid=:cookid and username=:username";//削除することで押してない状態に戻す
