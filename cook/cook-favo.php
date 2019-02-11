@@ -81,7 +81,7 @@ if(!empty($_POST["posttitle"])){
   $title=$_POST["posttitle"];
 }
 
-function goodDB($postid,$pdo,$cookid,$username){//----------------------------------いいね関数DB書き込み部分
+function goodDB($postid,$pdo,$cookid,$username){//----------------------------------いいね関数DB書き込み部分 //いいね関数分けている→いいねしたやつだけを表示させたいから
   if(isset($postid)){
     //押されているか確認するために同ユーザー名があるか数える
     $sql="SELECT * FROM cookgood where cookid=:cookid and username=:username";
@@ -137,7 +137,7 @@ $postid=$_POST["postid"];//hiddenで受け取る工夫
 goodDB($_POST["{$postid}"],$pdo,$postid,$_SESSION["USERID"]);//いいねのDBへの書き込みを先に置くことでこのページでもいいねに対応
 //全投稿表示（検索など何もされていない通常表示）
 if(empty($selectY) && empty($selectM) && empty($selectD) && empty($title) || $_POST["all"]){//---------①
-  $sql ="select*from cookgood where username=:username";
+  $sql ="select*from cookgood where username=:username"; //自分がいいねしているものをcookgoodから引き出す ←だからgood関数分ける必要あり？
   $stmt = $pdo->prepare($sql);
   $stmt->bindValue(':username',$_SESSION["USERID"],PDO::PARAM_STR);
   $stmt->execute();
