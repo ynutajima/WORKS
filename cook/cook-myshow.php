@@ -96,7 +96,7 @@ function good($postid,$pdo,$cookid,$username){//引数:各投稿についてる�
     if($mycount==0){//まだ押されていない場合
       $sql=$pdo->prepare("INSERT INTO cookgood(cookid,username) VALUES(:cookid,:username)");
       $sql->bindvalue(':cookid',$cookid, PDO::PARAM_INT);
-      $sql->bindvalue(':username',$username, PDO::PARAM_STR);
+      $sql->bindvalue(':username',$username, PDO::PARAM_STR); //cookgoodテーブルにはいいねした人のusernameを保存
       $sql->execute();
     }else{//押されている
       $sql="delete from cookgood where cookid=:cookid and username=:username";//削除することで押してない状態に戻す
