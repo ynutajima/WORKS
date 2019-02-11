@@ -82,9 +82,9 @@ if(!empty($_POST["posttitle"])){
 }
 
 //いいね機能の関数定義ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーいいね関数定義
-function good($postid,$pdo,$cookid,$username){
-  if(isset($postid)){
-    //押されているか確認するために同ユーザー名があるか数える
+function good($postid,$pdo,$cookid,$username){//引数:各投稿についてる良いねボタンの名前、$pdo、各投稿のid、セッションユーザー名
+  if(isset($postid)){//良いねボタンが押されたら
+    //押されているか確認するために同ユーザー名があるか数える←ユーザ名っていうのはsessionのやつ
     $sql="SELECT * FROM cookgood where cookid=:cookid and username=:username";
     $stmt=$pdo->prepare($sql);
     $stmt->bindvalue(':cookid',$cookid, PDO::PARAM_INT);
@@ -105,7 +105,7 @@ function good($postid,$pdo,$cookid,$username){
       $stmt->bindValue(':username',$username,PDO::PARAM_STR);
       $stmt->execute();
     }
-  }
+  }//いいね用のテーブルに処理をした後に↓
   //いいね数のカウント
   $sql="SELECT * FROM cookgood where cookid=:cookid";
   $stmt=$pdo->prepare($sql);
@@ -123,15 +123,15 @@ function good($postid,$pdo,$cookid,$username){
   $mycount=$stmt->fetchAll();
   $mycount=count($mycount);
   if($mycount>0){
-    echo "<font color=\"red\">$count</font>";
+    echo "<font color=\"red\">$count</font>";//押してたら赤く表示
   }elseif($mycount==0){
   echo $count;
   }
-}//－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－いいね関数定義
+}//－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－いいね関数定義終わり
 
 //全投稿表示（検索など何もされていない通常表示）
 if(empty($selectY) && empty($selectM) && empty($selectD) && empty($title) || $_POST["all"]){//---------①
-  $sql ="select*from cookdiary where username=:username  order by id desc";
+  $sql ="select*from cookdiary where username=:username  order by id desc"; //usernameはセッションのユーザー名つまりログイン本人
   $stmt = $pdo->prepare($sql);
   $stmt->bindParam(':username',$_SESSION["USERID"],PDO::PARAM_STR);
   $stmt->execute();
@@ -161,7 +161,7 @@ form;
   if($_POST["datesearch"] || !empty($selectY) || !empty($selectM) || !empty($selectD)){//日付から検索する場合
 
     function datesearch($select,$pdo,$selectY,$selectM,$selectD){//日付から検索する機能について関数にまとめておく、$pdoも引数にしておく必要がある
-      $sql ="select*from cookdiary where username=:username and created LIKE \"%{$select}\" order by id desc";
+      $sql ="select*from cookdiary where username=:username and created LIKE \"%{$select}\" order by id desc"; //mypageだからユーザー名の一致も見る
       $stmt = $pdo->prepare($sql);
       $stmt->bindParam(':username',$_SESSION["USERID"],PDO::PARAM_STR);
       $stmt->execute();
@@ -174,8 +174,8 @@ form;
         echo $row["title"]."<br>";
         echo wordwrap($row["comment"],50,"<br>",true)."<br>";
         //echo $row["picture"];
-        echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';
-        echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";
+        echo '<img src="./cook-createimg.php?id='.$row["id"].'" width="100" height="100">';//cook-createimg.phpに表示させたい投稿のidをgetで飛ばしている
+        echo '<a href="cook-reply.php?id='.$row["id"].'">'."メッセージ"."</a>";//cook-reply.phpに同じくidを飛ばしている
         echo<<<form
         <form method="POST" action="cook-myshow.php">
           <input name="postY" type="hidden" value="{$selectY}">
@@ -184,6 +184,8 @@ form;
           <input name="{$row["id"]}" type="submit" value="いいね">
         </form>
 form;
+//↑の{$row["id"]}は表示している各投稿のid
+
       //いいね機能、関数で実行
       good($_POST["{$row['id']}"],$pdo,$row['id'],$_SESSION["USERID"]);
         echo "<br>";
