@@ -16,3 +16,6 @@
 ・投稿記録(全ユーザーの記録)<br>
 ・ランキング(いいね獲得数)<br>
 ・お気に入り表示<br>
+
+概要のPDFです↓
+https://github.com/ynutajima/WORKS/blob/master/%E6%A9%9F%E8%83%BD%E8%AA%AC%E6%98%8E.pdf
